@@ -6,7 +6,22 @@ $productObj = new Product();
 $product = [];
 $errors = [];
 
-if($_SERVER["REQUEST_METHOD"] == "POST"){
+
+if ($_SERVER["REQUEST_METHOD"] == "GET"){
+    if(isset($_GET["id"])){
+        $pid = trim(htmlspecialchars($_GET["id"]));
+        $product = $productObj->fetchBook($pid);
+        if(!$product){
+            echo "<a href='viewBook.php'>View Book</a>";
+            exit("No Product Found");
+        }
+    }
+    else{
+        echo "<a href='viewBook.php'>View Book</a>";
+        exit("No Book Found");
+    }
+}
+elseif($_SERVER["REQUEST_METHOD"] == "POST"){
     $now = new DateTime('Y');
     $product["title"] = trim(htmlspecialchars($_POST["title"]));
     $product["author"] = trim(htmlspecialchars($_POST["author"]));
@@ -15,10 +30,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 
     if(empty($product["title"])){
         $errors["title"] = "Title is Required";
-    }elseif($productObj->isBookExist($product["title"])){
-        $errors["title"] = "Book name already existed";
     }
-    
     if(empty($product["author"])){
         $errors["author"] = "Author is Required";
     }
@@ -41,8 +53,8 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
         $productObj->publication_year = $product["publication_year"];
 
         
-        if($productObj->addBook()){
-            header("Location: viewBook.php ");
+        if($productObj->editBook($_GET["id"])){
+            header("Location: viewBook.php");
         }else{
             echo "Lock in Buddy";
         }
@@ -69,12 +81,12 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     </style>
 </head>
 <body>
-    <h1>Add Book</h1>
+    <h1>Edit Book</h1>
     <a href="viewBook.php">View Product</a><br><br>
 
-    <form action="" method="post">
+    <form action="" method="POST">
         <label for="title">title: <span>*</span></label><br>
-        <input type="text" name="title" value="<?= $product["title"] ?? "" ?>"><br>
+        <input type="text" name="title" value="<?= $product["title"] ?? "" ?>" ><br>
         <p class="error"><?= $errors["title"] ?? "" ?></p>
 
         <label for="author">author: <span>*</span></label><br>
